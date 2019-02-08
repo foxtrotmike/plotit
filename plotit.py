@@ -17,13 +17,11 @@ def plotit(X,Y=None,clf=None, markers = ('s','o'), hold = False, transform = Non
         if transform is not None:
             t = transform(t)
         z = clf(t)
-        z = np.reshape(z,(npts,npts)).T
-        
+        z = np.reshape(z,(npts,npts)).T        
         extent = [minx,maxx,miny,maxy]
-#        plt.imshow(z,vmin = -2, vmax = +2)    
         plt.contour(x,y,z,[-1+eps,0,1-eps],linewidths = [2],colors=('b','k','r'),extent=extent, label='f(x)=0')
         plt.imshow(np.flipud(z), extent = extent, cmap=plt.cm.Purples, vmin = -2, vmax = +2); plt.colorbar()
-#        plt.axis([minx,maxx,miny,maxy])   
+        plt.axis([minx,maxx,miny,maxy])   
     if Y is not None:
         plt.scatter(X[Y==1,0],X[Y==1,1],marker = markers[0], c = 'y', s = 30)
         plt.scatter(X[Y==-1,0],X[Y==-1,1],marker = markers[1],c = 'c', s = 30)
