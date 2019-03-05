@@ -80,3 +80,9 @@ def plotit(X,Y=None,clf=None, ccolors = ('b','k','r'), colors = ('c','y'), marke
     if not hold:
         plt.grid()        
         plt.show()
+        
+if __name__ == '__main__':
+    X = np.array([[0,0],[0,1],[1,0],[1,1]]) #dummy data
+    Y = np.array([1,1,1,0]) #dummy labels
+    clf = lambda x: np.sum(x,axis=1)-1 #dummy classifier
+    plotit(X = X, Y = Y, clf = clf)
