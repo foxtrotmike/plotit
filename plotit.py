@@ -10,14 +10,15 @@ import matplotlib.pyplot as plt #importing plotting module
 import itertools
 import warnings
 
-def plotit(X,Y=None,clf=None, ccolors = ('b','k','r'), colors = ('c','y'), markers = ('s','o'), hold = False, transform = None,**kwargs):
+def plotit(X,Y=None,clf=None,  conts = None, ccolors = ('b','k','r'), colors = ('c','y'), markers = ('s','o'), hold = False, transform = None,**kwargs):
     """
     A function for showing data scatter plot and classification boundary
     of a classifier for 2D data
         X: nxd  matrix of data points
         Y: (optional) n vector of class labels
         clf: (optional) classification/discriminant function handle
-        ccolors: (optional) colors for contours
+        conts: (optional) contours (if None, contours are drawn for each class boundary)
+        ccolors: (optional) colors for contours   
         colors: (optional) colors for each class (sorted wrt class id)
             can be 'scaled' or 'random' or a list/tuple of color ids
         markers: (optional) markers for each class (sorted wrt class id)
@@ -39,11 +40,13 @@ def plotit(X,Y=None,clf=None, ccolors = ('b','k','r'), colors = ('c','y'), marke
     
     if Y is not None:
         classes = sorted(set(Y))
-        conts = classes
-        vmin,vmax = classes[0]+eps,classes[-1]-eps
+        if conts is None:
+            conts = list(classes)        
+        vmin,vmax = classes[0]-eps,classes[-1]+eps
     else:
         vmin,vmax=-2-eps,2+eps
-        conts = [-1+eps,0,1-eps]
+        if conts is None:            
+            conts = sorted([-1+eps,0,1-eps])
         
     if clf is not None:
         npts = 150
@@ -80,9 +83,22 @@ def plotit(X,Y=None,clf=None, ccolors = ('b','k','r'), colors = ('c','y'), marke
     if not hold:
         plt.grid()        
         plt.show()
+
+def getExamples(n=100,d=2):
+    """
+    Generates n d-dimensional normally distributed examples of each class        
+    The mean of the positive class is [1] and for the negative class it is [-1]
+    """
+    Xp = randn(n,d)#+1   #generate n examples of the positie class
+    Xp[:,0]=Xp[:,0]+1
+    Xn = randn(n,d)#-1   #generate n examples of the negative class
+    Xn[:,0]=Xn[:,0]-1
+    X = np.vstack((Xp,Xn))  #Stack the examples together to a single matrix
+    Y = np.array([+1]*n+[-1]*n) #Associate Labels
+    return (X,Y) 
+       
         
 if __name__ == '__main__':
-    X = np.array([[0,0],[0,1],[1,0],[1,1]]) #dummy data
-    Y = np.array([1,1,1,0]) #dummy labels
-    clf = lambda x: np.sum(x,axis=1)-1 #dummy classifier
-    plotit(X = X, Y = Y, clf = clf)
+    X,Y = getExamples()
+    clf = lambda x: 2*np.sum(x,axis=1)-2.5 #dummy classifier
+    plotit(X = X, Y = Y, clf = clf, conts =[-1,0,1], colors = 'random')
