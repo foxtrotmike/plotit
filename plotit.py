@@ -1,14 +1,50 @@
+# -*- coding: utf-8 -*-
+"""
+@author: Dr. Fayyaz Minhas
+@author-email: afsar at pieas dot edu dot pk
+2D Scatter Plotter for Classification
+"""
+from numpy.random import randn #importing randn
 import numpy as np #importing numpy
 import matplotlib.pyplot as plt #importing plotting module
 import itertools
-def plotit(X,Y=None,clf=None, markers = ('s','o'), hold = False, transform = None):
+import warnings
+
+def plotit(X,Y=None,clf=None, ccolors = ('b','k','r'), colors = ('c','y'), markers = ('s','o'), hold = False, transform = None,**kwargs):
     """
-    Just a function for showing a data scatter plot and classification boundary
-    of a classifier clf
+    A function for showing data scatter plot and classification boundary
+    of a classifier for 2D data
+        X: nxd  matrix of data points
+        Y: (optional) n vector of class labels
+        clf: (optional) classification/discriminant function handle
+        ccolors: (optional) colors for contours
+        colors: (optional) colors for each class (sorted wrt class id)
+            can be 'scaled' or 'random' or a list/tuple of color ids
+        markers: (optional) markers for each class (sorted wrt class id)
+        hold: Whether to hold the plot or not for overlay (default: False).
+        transform: (optional) a function handle for transforming data before passing to clf
+        kwargs: any keyword arguments to be passed to clf (if any)        
     """
+    if clf is not None and X.shape[1]!=2:
+        warnings.warn("Data Dimensionality is not 2. Unable to plot.")
+        return
+    if markers is None:
+        markers = ('.',)
+        
+    d0,d1 = (0,1)
+    minx, maxx = np.min(X[:,d0]), np.max(X[:,d0])
+    miny, maxy = np.min(X[:,d1]), np.max(X[:,d1])
     eps=1e-6
-    minx, maxx = np.min(X[:,0]), np.max(X[:,0])
-    miny, maxy = np.min(X[:,1]), np.max(X[:,1])
+
+    
+    if Y is not None:
+        classes = sorted(set(Y))
+        conts = classes
+        vmin,vmax = classes[0]+eps,classes[-1]-eps
+    else:
+        vmin,vmax=-2-eps,2+eps
+        conts = [-1+eps,0,1-eps]
+        
     if clf is not None:
         npts = 150
         x = np.linspace(minx,maxx,npts)
@@ -16,20 +52,31 @@ def plotit(X,Y=None,clf=None, markers = ('s','o'), hold = False, transform = Non
         t = np.array(list(itertools.product(x,y)))
         if transform is not None:
             t = transform(t)
-        z = clf(t)
+        z = clf(t,**kwargs)
+        
         z = np.reshape(z,(npts,npts)).T        
         extent = [minx,maxx,miny,maxy]
-        plt.contour(x,y,z,[-1+eps,0,1-eps],linewidths = [2],colors=('b','k','r'),extent=extent, label='f(x)=0')
-        plt.imshow(np.flipud(z), extent = extent, cmap=plt.cm.Purples, vmin = -2, vmax = +2); plt.colorbar()
-        plt.axis([minx,maxx,miny,maxy])   
-    if Y is not None:
-        plt.scatter(X[Y==1,0],X[Y==1,1],marker = markers[0], c = 'y', s = 30)
-        plt.scatter(X[Y==-1,0],X[Y==-1,1],marker = markers[1],c = 'c', s = 30)
-        plt.xlabel('$x_1$')
-        plt.ylabel('$x_2$')        
+        
+        plt.contour(x,y,z,conts,linewidths = [2],colors=ccolors,extent=extent, label='f(x)=0')
+        #plt.imshow(np.flipud(z), extent = extent, cmap=plt.cm.Purples, vmin = -2, vmax = +2); plt.colorbar()
+        plt.pcolormesh(x, y, z,cmap=plt.cm.Purples,vmin=vmin,vmax=vmax);plt.colorbar()
+        plt.axis([minx,maxx,miny,maxy])
+    
+    if Y is not None:        
+        for i,y in enumerate(classes):
+            if colors is None or colors=='scaled':
+                cc = np.array([[i,i,i]])/float(len(classes))
+            elif colors =='random':
+                cc = np.array([[np.random.rand(),np.random.rand(),np.random.rand()]])
+            else:
+                cc = colors[i%len(colors)]
+            mm = markers[i%len(markers)]
+            plt.scatter(X[Y==y,d0],X[Y==y,d1], marker = mm,c = cc, s = 30)     
          
     else:
-        plt.scatter(X[:,0],X[:,1],marker = '.', c = 'k', s = 5)
+        plt.scatter(X[:,d0],X[:,d1],marker = markers[0], c = 'k', s = 5)
+    plt.xlabel('$x_1$')
+    plt.ylabel('$x_2$')   
     if not hold:
-        plt.grid()
+        plt.grid()        
         plt.show()
