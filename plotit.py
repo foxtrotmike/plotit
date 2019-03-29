@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt #importing plotting module
 import itertools
 import warnings
 
-def plotit(X,Y=None,clf=None,  conts = None, ccolors = ('b','k','r'), colors = ('c','y'), markers = ('s','o'), hold = False, transform = None,**kwargs):
+def plotit(X,Y=None,clf=None,  conts = None, ccolors = ('b','k','r'), colors = ('c','y'), markers = ('s','o'), hold = False, transform = None,extent = None,**kwargs):
     """
     A function for showing data scatter plot and classification boundary
     of a classifier for 2D data
@@ -31,13 +31,14 @@ def plotit(X,Y=None,clf=None,  conts = None, ccolors = ('b','k','r'), colors = (
         return
     if markers is None:
         markers = ('.',)
-        
-    d0,d1 = (0,1)
-    minx, maxx = np.min(X[:,d0]), np.max(X[:,d0])
-    miny, maxy = np.min(X[:,d1]), np.max(X[:,d1])
     eps=1e-6
-
-    
+    d0,d1 = (0,1)
+    if extent is None:
+        minx, maxx = np.min(X[:,d0])-eps, np.max(X[:,d0])+eps
+        miny, maxy = np.min(X[:,d1])-eps, np.max(X[:,d1])+eps
+        extent = [minx,maxx,miny,maxy]
+    else:
+        [minx,maxx,miny,maxy] = extent
     if Y is not None:
         classes = sorted(set(Y))
         if conts is None:
@@ -58,12 +59,12 @@ def plotit(X,Y=None,clf=None,  conts = None, ccolors = ('b','k','r'), colors = (
         z = clf(t,**kwargs)
         
         z = np.reshape(z,(npts,npts)).T        
-        extent = [minx,maxx,miny,maxy]
+        
         
         plt.contour(x,y,z,conts,linewidths = [2],colors=ccolors,extent=extent, label='f(x)=0')
         #plt.imshow(np.flipud(z), extent = extent, cmap=plt.cm.Purples, vmin = -2, vmax = +2); plt.colorbar()
         plt.pcolormesh(x, y, z,cmap=plt.cm.Purples,vmin=vmin,vmax=vmax);plt.colorbar()
-        plt.axis([minx,maxx,miny,maxy])
+        plt.axis(extent)
     
     if Y is not None:        
         for i,y in enumerate(classes):
@@ -83,6 +84,7 @@ def plotit(X,Y=None,clf=None,  conts = None, ccolors = ('b','k','r'), colors = (
     if not hold:
         plt.grid()        
         plt.show()
+    return extent
 
 def getExamples(n=100,d=2):
     """
@@ -90,9 +92,9 @@ def getExamples(n=100,d=2):
     The mean of the positive class is [1] and for the negative class it is [-1]
     """
     Xp = randn(n,d)#+1   #generate n examples of the positie class
-    Xp[:,0]=Xp[:,0]+1
+    Xp=Xp+1
     Xn = randn(n,d)#-1   #generate n examples of the negative class
-    Xn[:,0]=Xn[:,0]-1
+    Xn=Xn-1
     X = np.vstack((Xp,Xn))  #Stack the examples together to a single matrix
     Y = np.array([+1]*n+[-1]*n) #Associate Labels
     return (X,Y) 
