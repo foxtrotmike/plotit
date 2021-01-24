@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 @author: Dr. Fayyaz Minhas
-@author-email: afsar at pieas dot edu dot pk
 2D Scatter Plotter for Classification
 """
 from numpy.random import randn #importing randn
